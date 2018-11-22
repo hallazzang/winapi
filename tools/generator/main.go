@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 var (
@@ -53,5 +54,17 @@ func init() {
 }
 
 func main() {
-	fmt.Println(sigFile, typeFile, packageName)
+	sigs, err := parseSignatures(sigFile)
+	if err != nil {
+		panic(err)
+	}
+	// types := parseTypes(typeFile)
+
+	for _, f := range sigs.Functions {
+		var ps []string
+		for _, p := range f.Parameters {
+			ps = append(ps, fmt.Sprintf("%s %s", p.Type, p.Name))
+		}
+		fmt.Printf("%s %s(%s)\n", f.ReturnType, f.Name, strings.Join(ps, ", "))
+	}
 }
