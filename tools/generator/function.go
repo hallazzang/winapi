@@ -6,7 +6,7 @@ import (
 	"github.com/alecthomas/participle"
 )
 
-type Signatures struct {
+type Functions struct {
 	Functions []*Function `{ @@ }`
 }
 
@@ -22,17 +22,17 @@ type Parameter struct {
 	Name string `@Ident`
 }
 
-func parseSignatures(r io.Reader) (*Signatures, error) {
-	sigs := new(Signatures)
+func parseFunctions(r io.Reader) (*Functions, error) {
+	fs := new(Functions)
 
-	parser, err := participle.Build(sigs, participle.Elide("Comment"))
+	parser, err := participle.Build(fs, participle.Elide("Comment"))
 	if err != nil {
 		return nil, err
 	}
 
-	if err := parser.Parse(r, sigs); err != nil {
+	if err := parser.Parse(r, fs); err != nil {
 		return nil, err
 	}
 
-	return sigs, nil
+	return fs, nil
 }

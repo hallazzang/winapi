@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	sigFile     *os.File
+	funcFile    *os.File
 	typeFile    *os.File
 	packageName string
 )
@@ -35,16 +35,16 @@ func (fv *FileValue) Set(s string) error {
 }
 
 func init() {
-	flag.Var(&FileValue{&sigFile}, "s", "function signature `file`")
+	flag.Var(&FileValue{&funcFile}, "s", "function signature `file`")
 	flag.Var(&FileValue{&typeFile}, "t", "type definition `file`")
 	flag.StringVar(&packageName, "p", "winapi", "package `name`")
 
 	flag.Parse()
 
-	if sigFile == nil && typeFile == nil {
+	if funcFile == nil && typeFile == nil {
 		flag.Usage()
 		os.Exit(1)
-	} else if sigFile == nil {
+	} else if funcFile == nil {
 		fmt.Println("function signature file must be provided with -s option")
 		os.Exit(1)
 	} else if typeFile == nil {
@@ -54,13 +54,13 @@ func init() {
 }
 
 func main() {
-	sigs, err := parseSignatures(sigFile)
+	fs, err := parseFunctions(funcFile)
 	if err != nil {
 		panic(err)
 	}
 	// types := parseTypes(typeFile)
 
-	for _, f := range sigs.Functions {
+	for _, f := range fs.Functions {
 		var ps []string
 		for _, p := range f.Parameters {
 			ps = append(ps, fmt.Sprintf("%s %s", p.Type, p.Name))
