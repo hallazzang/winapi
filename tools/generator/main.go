@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	funcFile    *os.File
-	typeFile    *os.File
+	defFile     *os.File
+	outFilePath string
 	packageName string
 )
 
@@ -35,36 +35,44 @@ func (fv *FileValue) Set(s string) error {
 }
 
 func init() {
-	flag.Var(&FileValue{&funcFile}, "s", "function signature `file`")
-	flag.Var(&FileValue{&typeFile}, "t", "type definition `file`")
+	flag.Var(&FileValue{&defFile}, "d", "definition `file`")
+	flag.StringVar(&outFilePath, "o", "", "output `file`")
 	flag.StringVar(&packageName, "p", "winapi", "package `name`")
 
 	flag.Parse()
 
-	if funcFile == nil && typeFile == nil {
+	if defFile == nil {
+		fmt.Println("error: definition file must be specified")
 		flag.Usage()
-		os.Exit(1)
-	} else if funcFile == nil {
-		fmt.Println("function signature file must be provided with -s option")
-		os.Exit(1)
-	} else if typeFile == nil {
-		fmt.Println("type definition file must be provided with -t option")
 		os.Exit(1)
 	}
 }
 
 func main() {
-	fs, err := parseFunctions(funcFile)
+	ds, err := parse(defFile)
 	if err != nil {
 		panic(err)
 	}
-	// types := parseTypes(typeFile)
 
-	for _, f := range fs.Functions {
-		var ps []string
-		for _, p := range f.Parameters {
-			ps = append(ps, fmt.Sprintf("%s %s", p.Type, p.Name))
+	for _, d := range ds.Definitions {
+		if d.Function != nil {
+			f := *d.Function
+			var ps []string
+			for _, p := range f.Parameters {
+				ps = append(ps, fmt.Sprintf("%s %s", p.Type, p.Name))
+			}
+			fmt.Printf("function: %s %s(%s)\n", f.ReturnType, f.Name, strings.Join(ps, ", "))
+		} else {
+			t := *d.TypeDef
+			if t.SrcType.SimpleType != nil {
+				fmt.Printf("type: %s -> %s\n", t.DstType, *t.SrcType.SimpleType)
+			} else {
+				var ms []string
+				for _, m := range t.SrcType.StructType.Members {
+					ms = append(ms, fmt.Sprintf("\t%s %s", m.Type, m.Name))
+				}
+				fmt.Printf("type: %s -> struct {\n%s\n}\n", t.DstType, strings.Join(ms, "\n"))
+			}
 		}
-		fmt.Printf("%s %s(%s)\n", f.ReturnType, f.Name, strings.Join(ps, ", "))
 	}
 }
