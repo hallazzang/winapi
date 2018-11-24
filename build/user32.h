@@ -1,5 +1,13 @@
 // copied from MSDN
 
+typedef int32 BOOL;
+typedef struct {
+    INT left;
+    INT top;
+    INT right;
+    INT bottom;
+} RECT;
+
 BOOL BringWindowToTop(
   HWND hWnd
 );
